@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life in Weeks - Visualize Your Life</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .input-section {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 15px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .input-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        label {
+            font-weight: 600;
+            color: #444;
+            font-size: 1.1rem;
+        }
+
+        input[type="date"] {
+            padding: 12px 20px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input[type="date"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            min-width: 150px;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #667eea;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin: 40px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 15px;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 2px;
+            font-size: 0.8rem;
+        }
+
+        .year-label {
+            text-align: right;
+            padding: 8px 12px;
+            font-weight: 600;
+            color: #444;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 5px;
+            min-width: 60px;
+        }
+
+        .week-cell {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .week-cell:hover {
+            transform: scale(1.5);
+            z-index: 10;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .week-cell.future {
+            background: #e8e8e8;
+            border: 1px solid #ddd;
+        }
+
+        .week-cell.lived {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: 1px solid #667eea;
+        }
+
+        .week-cell.current {
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            border: 2px solid #ff6b6b;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            border: 1px solid #ddd;
+        }
+
+        .legend-box.lived {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-color: #667eea;
+        }
+
+        .legend-box.current {
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            border-color: #ff6b6b;
+        }
+
+        .legend-box.future {
+            background: #e8e8e8;
+            border-color: #ddd;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            pointer-events: none;
+            z-index: 1000;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .tooltip.show {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .stats {
+                gap: 20px;
+            }
+
+            .stat-item {
+                min-width: 120px;
+                padding: 15px;
+            }
+
+            .week-cell {
+                width: 8px;
+                height: 8px;
+            }
+
+            .year-label {
+                font-size: 0.7rem;
+                min-width: 40px;
+                padding: 4px 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Life in Weeks</h1>
+            <p class="subtitle">Visualize your life journey, one week at a time</p>
+        </header>
+
+        <section class="input-section">
+            <div class="input-group">
+                <label for="birthdate">Enter your birth date:</label>
+                <input type="date" id="birthdate" max="">
+                <button onclick="generateLifeTable()">Generate My Life Table</button>
+            </div>
+        </section>
+
+        <section class="stats" id="stats" style="display: none;">
+            <div class="stat-item">
+                <span class="stat-number" id="age-years">0</span>
+                <span class="stat-label">Years Old</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="weeks-lived">0</span>
+                <span class="stat-label">Weeks Lived</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="weeks-remaining">0</span>
+                <span class="stat-label">Weeks Remaining (to 90)</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="percentage-lived">0%</span>
+                <span class="stat-label">of Life Lived</span>
+            </div>
+        </section>
+
+        <main class="table-container" id="table-container" style="display: none;">
+            <table id="life-table"></table>
+        </main>
+
+        <div class="legend" id="legend" style="display: none;">
+            <div class="legend-item">
+                <div class="legend-box lived"></div>
+                <span>Weeks Lived</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box current"></div>
+                <span>Current Week</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box future"></div>
+                <span>Future Weeks</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        // Set max date to today
+        document.getElementById('birthdate').max = new Date().toISOString().split('T')[0];
+
+        function generateLifeTable() {
+            const birthdateInput = document.getElementById('birthdate');
+            const birthdate = new Date(birthdateInput.value);
+            
+            if (!birthdateInput.value) {
+                alert('Please enter your birth date');
+                return;
+            }
+
+            const today = new Date();
+            const maxAge = 90;
+            const weeksPerYear = 52;
+
+            // Calculate current age in weeks
+            const weeksDiff = Math.floor((today - birthdate) / (7 * 24 * 60 * 60 * 1000));
+            const currentYear = Math.floor(weeksDiff / weeksPerYear);
+            const currentWeek = weeksDiff % weeksPerYear;
+
+            // Update stats
+            updateStats(birthdate, today, weeksDiff, maxAge * weeksPerYear);
+
+            // Generate table
+            const table = document.getElementById('life-table');
+            table.innerHTML = '';
+
+            // Create header row with week numbers
+            const headerRow = document.createElement('tr');
+            headerRow.innerHTML = '<th></th>'; // Empty corner cell
+            
+            for (let week = 1; week <= weeksPerYear; week++) {
+                const th = document.createElement('th');
+                th.textContent = week;
+                th.style.cssText = 'font-size: 0.7rem; padding: 4px; color: #666; font-weight: 500;';
+                headerRow.appendChild(th);
+            }
+            table.appendChild(headerRow);
+
+            // Create rows for each year
+            for (let year = 0; year <= maxAge; year++) {
+                const row = document.createElement('tr');
+                
+                // Year label
+                const yearCell = document.createElement('td');
+                yearCell.className = 'year-label';
+                yearCell.textContent = year;
+                row.appendChild(yearCell);
+
+                // Week cells for this year
+                for (let week = 1; week <= weeksPerYear; week++) {
+                    const weekCell = document.createElement('td');
+                    weekCell.className = 'week-cell';
+                    
+                    const totalWeeks = year * weeksPerYear + week;
+                    
+                    // Determine cell state
+                    if (totalWeeks < weeksDiff) {
+                        weekCell.classList.add('lived');
+                    } else if (totalWeeks === weeksDiff) {
+                        weekCell.classList.add('current');
+                    } else {
+                        weekCell.classList.add('future');
+                    }
+
+                    // Add tooltip data
+                    weekCell.dataset.year = year;
+                    weekCell.dataset.week = week;
+                    weekCell.dataset.totalWeeks = totalWeeks;
+                    
+                    // Add hover events
+                    weekCell.addEventListener('mouseenter', showTooltip);
+                    weekCell.addEventListener('mouseleave', hideTooltip);
+                    
+                    row.appendChild(weekCell);
+                }
+                
+                table.appendChild(row);
+            }
+
+            // Show elements
+            document.getElementById('stats').style.display = 'flex';
+            document.getElementById('table-container').style.display = 'block';
+            document.getElementById('legend').style.display = 'flex';
+
+            // Scroll to current position
+            scrollToCurrentWeek(currentYear);
+        }
+
+        function updateStats(birthdate, today, weeksLived, totalWeeks) {
+            const yearsLived = Math.floor(weeksLived / 52);
+            const weeksRemaining = Math.max(0, totalWeeks - weeksLived);
+            const percentageLived = Math.round((weeksLived / totalWeeks) * 100);
+
+            document.getElementById('age-years').textContent = yearsLived;
+            document.getElementById('weeks-lived').textContent = weeksLived.toLocaleString();
+            document.getElementById('weeks-remaining').textContent = weeksRemaining.toLocaleString();
+            document.getElementById('percentage-lived').textContent = percentageLived + '%';
+        }
+
+        function showTooltip(event) {
+            const tooltip = document.getElementById('tooltip');
+            const cell = event.target;
+            
+            const year = cell.dataset.year;
+            const week = cell.dataset.week;
+            const totalWeeks = cell.dataset.totalWeeks;
+            
+            let content = `Year ${year}, Week ${week}<br>Total Week: ${totalWeeks}`;
+            
+            if (cell.classList.contains('current')) {
+                content += '<br><strong>Current Week!</strong>';
+            } else if (cell.classList.contains('lived')) {
+                content += '<br>Lived ✓';
+            } else {
+                content += '<br>Future';
+            }
+            
+            tooltip.innerHTML = content;
+            tooltip.style.left = event.pageX + 10 + 'px';
+            tooltip.style.top = event.pageY - 30 + 'px';
+            tooltip.classList.add('show');
+        }
+
+        function hideTooltip() {
+            const tooltip = document.getElementById('tooltip');
+            tooltip.classList.remove('show');
+        }
+
+        function scrollToCurrentWeek(currentYear) {
+            setTimeout(() => {
+                const table = document.getElementById('life-table');
+                const currentRow = table.rows[currentYear + 1]; // +1 because of header
+                if (currentRow) {
+                    currentRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
+        }
+
+        // Auto-generate on page load if birthdate is stored
+        window.addEventListener('load', () => {
+            const storedBirthdate = localStorage.getItem('birthdate');
+            if (storedBirthdate) {
+                document.getElementById('birthdate').value = storedBirthdate;
+                generateLifeTable();
+            }
+        });
+
+        // Save birthdate to localStorage
+        document.getElementById('birthdate').addEventListener('change', (e) => {
+            if (e.target.value) {
+                localStorage.setItem('birthdate', e.target.value);
+            }
+        });
+    </script>
+</body>
+</html>
